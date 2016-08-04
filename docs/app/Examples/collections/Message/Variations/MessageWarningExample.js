@@ -1,12 +1,12 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { Message } from 'stardust'
 
-export default class MessageWarningExample extends Component {
-  render() {
-    return (
-      <Message className='warning' header='You must register before you can do that!'>
-        Visit our registration page, then try again.
-      </Message>
-    )
-  }
-}
+const MessageWarningExample = () => (
+  <Message
+    warning
+    header='You must register before you can do that!'
+    content='Visit our registration page, then try again.'
+  />
+)
+
+export default MessageWarningExample

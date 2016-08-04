@@ -1,12 +1,12 @@
-import React, { Component } from 'react'
+import React from 'react'
 import { Message } from 'stardust'
 
-export default class MessageInfoExample extends Component {
-  render() {
-    return (
-      <Message className='info' header='Was this what you wanted?'>
-        Did you know it's been a while?
-      </Message>
-    )
-  }
-}
+const MessageInfoExample = () => (
+  <Message
+    info
+    header='Was this what you wanted?'
+    content="Did you know it's been a while?"
+  />
+)
+
+export default MessageInfoExample
