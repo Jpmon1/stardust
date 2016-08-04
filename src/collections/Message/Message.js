@@ -1,11 +1,18 @@
+import _ from 'lodash'
 import React, { PropTypes } from 'react'
 import cx from 'classnames'
 
-import META from '../../utils/Meta'
-import Header from '../../elements/Header/Header'
 import Icon from '../../elements/Icon/Icon'
+import MessageContent from './MessageContent'
+import MessageHeader from './MessageHeader'
+import MessageList from './MessageList'
+
+import META from '../../utils/Meta'
+import { someChildType } from '../../utils/childrenUtils'
+import {
+  customPropTypes, getUnhandledProps, iconPropRenderer, useKeyOnly, useKeyOrValueAndKey,
+} from '../../utils/propUtils'
 import * as sui from '../../utils/semanticUtils'
-import { customPropTypes } from '../../utils/propUtils'
 
 /**
  * A message displays information that explains nearby content
@@ -14,43 +21,66 @@ function Message(props) {
   const {
     children,
     className,
-    header,
+    content,
     icon,
+    header,
     dismissable,
+    onDismiss,
+    hidden,
+    visible,
+    floating,
+    compact,
+    attached,
+    warning,
+    info,
+    positive,
+    success,
+    negative,
+    error,
+    color,
+    size,
   } = props
+
   const classes = cx(
     'ui',
+    size,
+    color,
+    useKeyOnly(icon || someChildType(children, Icon), 'icon'),
+    useKeyOnly(hidden, 'hidden'),
+    useKeyOnly(visible, 'visible'),
+    useKeyOnly(floating, 'floating'),
+    useKeyOnly(compact, 'compact'),
+    useKeyOrValueAndKey(attached, 'attached'),
+    useKeyOnly(warning, 'warning'),
+    useKeyOnly(info, 'info'),
+    useKeyOnly(positive, 'positive'),
+    useKeyOnly(success, 'success'),
+    useKeyOnly(negative, 'negative'),
+    useKeyOnly(error, 'error'),
+    'message',
     className,
-    { icon: icon },
-    'message'
   )
 
-  const closeIcon = <Icon name='close' onClick={this.handleDismiss} />
-  const header = <Header>{header}</Header>
-  const icon = <Icon name={icon} />
+  const dismissIcon = (dismissable || onDismiss) && <Icon name='close' onClick={onDismiss || _.noop} />
+  const rest = getUnhandledProps(Message, props)
 
-  // wrap children in <p> if there is a header
-  const children = header ? <p>{children}</p> : children
-
-  // wrap header and children in content if there is an icon
-  const content = (
-    <div className='content'>
-      {header && header}
-      {children}
-    </div>
-  )
-
-  // prevent spreading icon classes as props on message element
-  const messageProps = { ...this.props }
-  delete messageProps.icon
+  if (icon || header || content) {
+    return (
+      <div {...rest} className={classes}>
+        {dismissIcon}
+        {icon && iconPropRenderer(icon)}
+        <MessageContent>
+          {header && <MessageHeader>{header}</MessageHeader>}
+          {content}
+        </MessageContent>
+      </div>
+    )
+  }
 
   return (
-    <div {...messageProps} className={classes}>
-      {dismissable && closeIcon}
-      {icon && icon}
-      {icon && content}
-      {!icon && header && header}
-      {!icon && children && children}
+    <div {...rest} className={classes}>
+      {dismissIcon}
+      {children}
     </div>
   )
 }
@@ -60,10 +90,10 @@ Message._meta = {
   name: 'Message',
   type: META.type.collection,
   props: {
-    attached: [true, 'bottom'],
+    attached: ['bottom'],
     color: sui.colors,
     size: sui.sizes,
-  }
+  },
 }
 
 Message.propTypes = {
@@ -80,10 +110,28 @@ Message.propTypes = {
   content: PropTypes.node,
 
   /** A message can contain an icon. */
-  icon: PropTypes.bool,
+  icon: customPropTypes.all([
+    customPropTypes.mutuallyExclusive(['children']),
+    PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.node,
+    ]),
+  ]),
+
+  /** The content of the MessageHeader, mutually exclusive with children. */
+  header: customPropTypes.all([
+    customPropTypes.mutuallyExclusive(['children']),
+    PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.node,
+    ]),
+  ]),
 
   /** A message that the user can choose to hide. */
   dismissable: PropTypes.bool,
+
+  /** Called when the user clicks the "x" icon. This also adds the "x" icon. */
+  onDismiss: PropTypes.func,
 
   /** A message can be hidden. */
   hidden: PropTypes.bool,
@@ -98,7 +146,10 @@ Message.propTypes = {
   compact: PropTypes.bool,
 
   /** A message can be formatted to attach itself to other content. */
-  attached: PropTypes.oneOf(Message._meta.props.attached),
+  attached: PropTypes.oneOfType([
+    PropTypes.bool,
+    PropTypes.oneOf(Message._meta.props.attached),
+  ]),
 
   /** A message may be formatted to display warning messages. */
   warning: PropTypes.bool,
@@ -124,5 +175,9 @@ Message.propTypes = {
   /** A message can have different sizes. */
   size: PropTypes.oneOf(Message._meta.props.size),
 }
+
+Message.Content = MessageContent
+Message.Header = MessageHeader
+Message.List = MessageList
 
 export default Message
